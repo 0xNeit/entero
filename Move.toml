@@ -1,0 +1,16 @@
+[package]
+name = "entero"
+version = "1.0.0"
+authors = []
+
+[addresses]
+entero = "0xf6a1a7abdb9bc13ba98705dd8dc5f49aa0201c3431c5b1a510f966c1a64028c4"
+
+[dev-addresses]
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
