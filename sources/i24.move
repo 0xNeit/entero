@@ -107,4 +107,67 @@ module entero::i24 {
       return I24 { underlying }
     }
   }
+
+  public fun modulo(a: I24, b: I24): I24 {
+    let remainder = abs(a) % abs(b);
+    if (a.underlying > indent() && b.underlying > indent()) {
+      return from_pos(remainder)
+    } else if (a.underlying < indent() && b.underlying < indent()) {
+      return from_pos(remainder)
+    } else {
+      return from_neg(remainder)
+    }
+  }
+
+  public fun add(a: I24, b: I24): I24 {
+    // subtract 1 << 24 to avoid a double move, then from will perform the overflow check
+    from(a.underlying - indent() + b.underlying)
+  }
+
+  public fun subtract(a: I24, b: I24): I24 {
+    let res;
+    if (a.underlying > indent()) {
+      // add 1 << 31 to avoid loosing the move
+      res = from(a.underlying - b.underlying + indent());
+    } else {
+      // subtract from 1 << 31 as we are getting a negative value
+      res = from(indent() - (b.underlying - a.underlying));
+    };
+
+    res
+  }
+
+  public fun multiply(a: I24, b: I24): I24 {
+    let res = new();
+    if (a.underlying >= indent() && b.underlying >= indent()) {
+      res = from((a.underlying - indent()) * (b.underlying - indent()) + indent());
+    } else if (a.underlying < indent() && b.underlying < indent()) {
+      res = from((indent() - a.underlying) * (indent() - b.underlying) + indent());
+    } else if (a.underlying >= indent() && b.underlying < indent()) {
+      res = from(indent() - (a.underlying - indent()) * (indent() - b.underlying));
+    } else if (a.underlying < indent() && b.underlying >= indent()) {
+      res = from(indent() - (b.underlying - indent()) * (indent() - a.underlying));
+    };
+
+    // Overflow protection
+    assert!((lt(res, max())) || (eq(res, max())), ERR_OVERFLOW);
+
+    res
+  }
+
+  public fun divide(self: I24, divisor: I24): I24 {
+    assert!(!eq(divisor, new()), ERR_DIVISION_BY_ZERO);
+    let res = new();
+    if (self.underlying >= indent() && divisor.underlying > indent()) {
+      res = from((self.underlying - indent()) / (divisor.underlying - indent()) + indent());
+    } else if (self.underlying < indent() && divisor.underlying < indent()) {
+      res = from((indent() - self.underlying) / (indent() - divisor.underlying) + indent());
+    } else if (self.underlying >= indent() && divisor.underlying < indent()) {
+      res = from(indent() - (self.underlying - indent()) / (indent() - divisor.underlying));
+    } else if (self.underlying < indent() && divisor.underlying > indent()) {
+      res = from(indent() - (indent() - self.underlying) / (divisor.underlying - indent()));
+    };
+    
+    res
+  }
 }
